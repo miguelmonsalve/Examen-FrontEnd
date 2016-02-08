@@ -1,0 +1,155 @@
+
+
+1.-Primero cargamos los módulos:
+	npm install express –save   (instalamos express)
+	npm install body-parser --save  (Para peticiones POST)
+
+2.-Creamos la carpeta public para el contenido estático
+
+3.-Creamos el app.js
+
+4-Creamos la carpeta public
+
+5-Pegamos lo siguiente para cargar los módulos y para vincular la carpeta public:
+
+var express = require("express");
+var http = require("http");
+var fs = require("fs");
+var app = express(); 
+
+var bodyParser = require('body-parser')
+app.use(bodyParser.json());      
+app.use(bodyParser.urlencoded({    
+  extended: true
+})); 
+
+app.use(express.static('public')); 
+
+6-Creamos la variable que contendra el array:
+
+var discos=[];
+
+7-Creamos el servidor y lo dejamos escuchando:
+
+http.createServer(app).listen(8000, function() {
+	console.log("Servidor escuchando en puerto 8000");
+});
+
+---------PROBAMOS---------    http://localhost:8000/     -------PARAMOS------
+
+
+8-Nos creamos el archivo JSON usando http://jsonlint.com/
+
+Por ejemplo:
+
+[{
+	"id": 1,
+	"Titulo": "Weather Systems",
+	"Grupo": "Anathema"
+}, {
+	"id": 2,
+	"Titulo": "A Twist in The Miyth",
+	"Grupo": "Blind Guardian"
+}, {
+	"id": 3,
+	"Titulo": "Blackwater Park",
+	"Grupo": "Opeth"
+}, {
+	"id": 4,
+	"Titulo": "Ramdon Access Memories",
+	"Grupo": "Daft Punk"
+}]
+
+
+
+9.- Creamor la carpeta images dentro de public y ponemos el archivo discos.jpg
+
+10.-Creamos la peticion para                  http://localhost:8000/   :
+
+
+app.get("/", function(request, response) {
+	fs.readFile("discos.json", function (err, data) {    
+		var cadena = data.toString();
+		cadena = cadena.substr(cadena.indexOf("["));
+		console.log("JSON LEIDO");
+		console.log(cadena);
+		discos = JSON.parse(cadena);
+		response.writeHead(200, {"Content-Type": "text/html"});
+		response.write("<h1>Discos disponibles</h1>");
+		response.write("<img src='images/discos.jpg' />");
+		response.write("<ul>");		
+		for (var i in libros) {
+			response.write("<li>");
+			response.write(discos[i].id + ". " + 
+				libros[i].Titulo + " (" + libros[i].Grupo + ") ");
+			response.write("<a href='http://localhost:8000/eliminar/"+i+"' />Eliminar</a>")
+			response.write("</li>");
+		}
+		response.write("</ul>");
+		response.write("<p><a href='http://localhost:8000/nuevo'>Nuevo disco</a></p>");                    
+		response.end();
+	});
+});
+
+
+---------PROBAMOS---------    http://localhost:8000/     -----PARAMOS------
+
+11.-Creamos el nuevo.html
+
+12.-Creamos la peticion para	              http://localhost:8000/nuevo   :
+
+app.get("/nuevo", function(request, response) {
+	fs.readFile("nuevo.html", function (err, data) {				
+		response.writeHead(200, {"Content-Type": "text/html"});
+		response.write(data.toString());                
+		response.end();		
+	});
+});
+
+
+---------PROBAMOS---------    http://localhost:8000/nuevo   ----PARAMOS-----
+
+
+13.-Creamos la peticion para	              http://localhost:8000/add   :
+
+app.post("/add", function(request, response) {  
+	
+	discos.push({
+		
+		"id": parseInt(request.body.id),
+		"Titulo": request.body.Titulo,
+		"Grupo": request.body.Grupo
+	});
+	fs.writeFile('discos.json', JSON.stringify(discos));
+	
+	response.writeHead(200, {"Content-Type": "text/html"});
+	response.write("<p>Nuevo disco agregado</p>");
+	response.write("<p><a href='http://localhost:8000'>Volver</a></p>");
+	response.end();	
+});
+
+
+---------PROBAMOS---------    Probamos a añadir un nuevo disco   ----PARAMOS-----
+
+
+14,.Creamos la peticion eliminar por un parámetro  http://localhost:8000/eliminar:parámetro
+
+app.get("/eliminar/:posicion", function(request, response) {
+	
+	discos.splice(request.params.posicion,1);
+	fs.writeFile('discos.json', JSON.stringify(discos));
+	
+	response.writeHead(200, {"Content-Type": "text/html"});
+	response.write("<p>Se ha eliminado el disco con exito</p>");
+	response.write("<p><a href='http://localhost:8000'>Volver</a></p>");
+	response.end();	
+});
+
+
+---------PROBAMOS---------    Probamos a eliminar un disco   ----PARAMOS-----
+
+
+
+
+
+
